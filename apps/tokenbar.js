@@ -2,6 +2,13 @@ import { MonksTokenBar, log, error, debug, i18n, setting, MTB_MOVEMENT_TYPE } fr
 import { SavingThrowApp } from "./savingthrow.js";
 import { EditStats } from "./editstats.js";
 
+// yagi: ブーケ更新用メソッドの登録
+let bouquetSocket2
+Hooks.once("socketlib.ready", () => {
+	bouquetSocket2 = socketlib.registerModule("monks-tokenbar")
+	bouquetSocket2.register("updateBouquet", TokenBar.updateBouquet)
+})
+
 export class TokenBar extends Application {
 	constructor(options) {
 	    super(options);
@@ -485,6 +492,54 @@ export class TokenBar extends Application {
 
     _contextMenu(html) {
         let context = new ContextMenu(html, ".token", [
+            // yagi: 追加
+            {
+                name: "ブーケを贈る",
+                icon: '<i class="fas fa-flower"></i>',
+                condition: li => {
+                    const entry = this.entries.find(t => t.actor?.id === li[0].dataset.actorId);
+                    if (game.user.isGM && entry?.actor)
+                        return true;
+                    if (entry?.actor && entry?.actor?.testUserPermission(game.user, "OWNER"))
+                        return true;
+                    return false;
+                },
+                callback: async li => {
+                    const entry = this.entries.find(t => t.actor?.id === li[0].dataset.actorId);
+                    if (game.modules.get("confetti") != undefined && window.confetti) {
+                        const strength = window.confetti.confettiStrength.med
+                        const shootConfettiProps = window.confetti.getShootConfettiProps(strength)
+                        window.confetti.shootConfetti(shootConfettiProps)
+                    }
+                    const bouquet = entry.actor.system.resources.fourth.value + 1
+                    await bouquetSocket2.executeAsGM("updateBouquet", entry.actor, bouquet)
+                }
+            },
+            // yagi: 追加
+            {
+                name: "ブーケを使う(5)",
+                icon: '<i class="fas fa-star"></i>',
+                condition: li => {
+                    const entry = this.entries.find(t => t.actor?.id === li[0].dataset.actorId);
+                    if (game.user.isGM && entry?.actor)
+                        return true;
+                    if (entry?.actor && entry?.actor?.testUserPermission(game.user, "OWNER"))
+                        return true;
+                    return false;
+                },
+                callback: async li => {
+                    const entry = this.entries.find(t => t.actor?.id === li[0].dataset.actorId);
+                    const bouquet = entry.actor.system.resources.fourth.value - 5
+                    if (bouquet < 0) {
+                        ChatMessage.create({
+                            content: "利用可能なブーケがありません",
+                            user: game.user._id
+                        })
+                    } else {
+                        await bouquetSocket2.executeAsGM("updateBouquet", entry.actor, bouquet)
+                    }
+                }
+            },
             {
                 name: "MonksTokenBar.PrivateMessage",
                 icon: '<i class="fas fa-microphone"></i>',
@@ -515,6 +570,8 @@ export class TokenBar extends Application {
                     $("#chat-message").focus();
                 }
             },
+            // yagi: 削除
+            /*
             {
                 name: "MonksTokenBar.ExcludeFromTokenBar",
                 icon: '<i class="fas fa-ban"></i>',
@@ -534,6 +591,7 @@ export class TokenBar extends Application {
                     });
                 }
             },
+            */
             {
                 name: "MonksTokenBar.EditCharacter",
                 icon: '<i class="fas fa-edit"></i>',
@@ -565,7 +623,8 @@ export class TokenBar extends Application {
                     const entry = this.entries.find(t => t.token?.id === li[0].dataset.tokenId);
                     if (entry.token) entry.token.sheet.render(true)
                 }
-            },
+            }/*,
+            // yagi: 削除
             {
                 name: "MonksTokenBar.EditStats",
                 icon: '<i class="fas fa-list-ul"></i>',
@@ -658,6 +717,7 @@ export class TokenBar extends Application {
                     MonksTokenBar.changeTokenMovement(MTB_MOVEMENT_TYPE.COMBAT, entry.token);
                 }
             }
+            */
         ]);
 
         let oldRender = context.render;
@@ -735,6 +795,20 @@ export class TokenBar extends Application {
         const li = event.currentTarget;
         const entry = this.entries.find(t => t.token?.id === li.dataset.tokenId);
 
+        // yagi: GM以外でクリックした時の挙動を追加
+        if (!game.user.isGM) {
+            if (game.modules.get("confetti") != undefined && window.confetti) {
+                const strength = window.confetti.confettiStrength.med
+                const shootConfettiProps = window.confetti.getShootConfettiProps(strength)
+                window.confetti.shootConfetti(shootConfettiProps)
+            }
+            const bouquet = entry.actor.system.resources.fourth.value + 1
+            console.log(bouquetSocket2)
+            await bouquetSocket2.executeAsGM("updateBouquet", entry.actor, bouquet)
+            return 
+        }
+
+
         let that = this;
         if (!this.dbltimer) {
             this.dbltimer = window.setTimeout(async function () {
@@ -784,6 +858,9 @@ export class TokenBar extends Application {
         const li = event.currentTarget;
         const entry = this.entries.find(t => t.token?.id === li.dataset.tokenId);
 
+        // yagi: GM以外でクリックした時の挙動を追加
+        if (!game.user.isGM) return
+
         if (setting("dblclick-action") == "request" && (game.user.isGM || setting("allow-roll"))) {
             let entries = MonksTokenBar.getTokenEntries([entry.token._object]);
             new SavingThrowApp(entries).render(true);
@@ -819,6 +896,12 @@ export class TokenBar extends Application {
         else {
             this._hover = null;
         }
+    }
+
+    // yagi: ブーケの更新
+    static async updateBouquet(a, bouquet) {
+        const actor = game.actors.get(a._id)
+        await actor.update({"system.resources.fourth.value": bouquet})
     }
 }
 

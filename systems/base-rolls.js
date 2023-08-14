@@ -77,6 +77,8 @@ export class BaseRolls {
     getButtons() {
         var buttons =
         [
+        //yagi: 削除
+        /*
             [
                 {
                     id: 'movement-free',
@@ -108,6 +110,7 @@ export class BaseRolls {
                         } : null)
                 }
             ]
+        */
         ];
         if (game.user.isGM && MonksTokenBar.system._supportedSystem) {
             buttons.push([

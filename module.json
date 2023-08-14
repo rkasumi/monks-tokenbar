@@ -66,11 +66,6 @@
   "styles": [
     "css/tokenbar.css"
   ],
-  "url": "https://github.com/ironmonk88/monks-tokenbar",
-  "download": "https://github.com/ironmonk88/monks-tokenbar/archive/11.02.zip",
-  "manifest": "https://github.com/ironmonk88/monks-tokenbar/releases/latest/download/module.json",
-  "bugs": "https://github.com/ironmonk88/monks-tokenbar/issues",
-  "allowBugReporter": true,
   "id": "monks-tokenbar",
   "compatibility": {
     "minimum": "11",
