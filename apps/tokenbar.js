@@ -540,6 +540,8 @@ export class TokenBar extends Application {
                     }
                 }
             },
+            // 削除
+            /*
             {
                 name: "MonksTokenBar.PrivateMessage",
                 icon: '<i class="fas fa-microphone"></i>',
@@ -570,8 +572,6 @@ export class TokenBar extends Application {
                     $("#chat-message").focus();
                 }
             },
-            // yagi: 削除
-            /*
             {
                 name: "MonksTokenBar.ExcludeFromTokenBar",
                 icon: '<i class="fas fa-ban"></i>',
@@ -807,6 +807,15 @@ export class TokenBar extends Application {
             await bouquetSocket2.executeAsGM("updateBouquet", entry.actor, bouquet)
             return 
         }
+        // yagi: GMでクリックしたら規定のダブルクリック動作
+        if (setting("dblclick-action") == "request" && (game.user.isGM || setting("allow-roll"))) {
+            let entries = MonksTokenBar.getTokenEntries([entry.token._object]);
+            new SavingThrowApp(entries).render(true);
+        } else {
+            if (entry.actor)
+                entry.actor.sheet.render(true);
+        }
+        return
 
 
         let that = this;
@@ -858,8 +867,8 @@ export class TokenBar extends Application {
         const li = event.currentTarget;
         const entry = this.entries.find(t => t.token?.id === li.dataset.tokenId);
 
-        // yagi: GM以外でクリックした時の挙動を追加
-        if (!game.user.isGM) return
+        // yagi: ダブルクリックは無効 (すべてシングルクリックで動作)
+        return
 
         if (setting("dblclick-action") == "request" && (game.user.isGM || setting("allow-roll"))) {
             let entries = MonksTokenBar.getTokenEntries([entry.token._object]);
