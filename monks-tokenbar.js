@@ -226,7 +226,7 @@ export class MonksTokenBar {
                     }
                 },
                 {
-                    name: "Reroll and keep the new result",
+                    name: "再ロール",
                     icon: '<i class="fas fa-dice"></i>',
                     condition: canReroll,
                     callback: $li => {
@@ -239,7 +239,7 @@ export class MonksTokenBar {
                     }
                 },
                 {
-                    name: "Reroll and keep the worst result",
+                    name: "不利に変更",
                     icon: '<i class="fas fa-dice-one"></i>',
                     condition: canReroll,
                     callback: $li => {
@@ -252,7 +252,7 @@ export class MonksTokenBar {
                     }
                 },
                 {
-                    name: "Reroll and keep the better result",
+                    name: "有利に変更",
                     icon: '<i class="fas fa-dice-six"></i>',
                     condition: canReroll,
                     callback: $li => {

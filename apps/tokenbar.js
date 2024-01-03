@@ -511,7 +511,7 @@ export class TokenBar extends Application {
                         const shootConfettiProps = window.confetti.getShootConfettiProps(strength)
                         window.confetti.shootConfetti(shootConfettiProps)
                     }
-                    const bouquet = entry.actor.system.resources.fourth.value + 1
+                    const bouquet = this._get_resource(entry) + 1
                     await bouquetSocket2.executeAsGM("updateBouquet", entry.actor, bouquet)
                 }
             },
@@ -529,7 +529,7 @@ export class TokenBar extends Application {
                 },
                 callback: async li => {
                     const entry = this.entries.find(t => t.actor?.id === li[0].dataset.actorId);
-                    const bouquet = entry.actor.system.resources.fourth.value - 5
+                    const bouquet = this._get_resource(entry) - 5
                     if (bouquet < 0) {
                         ChatMessage.create({
                             content: "利用可能なブーケがありません",
@@ -802,8 +802,7 @@ export class TokenBar extends Application {
                 const shootConfettiProps = window.confetti.getShootConfettiProps(strength)
                 window.confetti.shootConfetti(shootConfettiProps)
             }
-            const bouquet = entry.actor.system.resources.fourth.value + 1
-            console.log(bouquetSocket2)
+            const bouquet = this._get_resource(entry) + 1
             await bouquetSocket2.executeAsGM("updateBouquet", entry.actor, bouquet)
             return 
         }
@@ -910,7 +909,19 @@ export class TokenBar extends Application {
     // yagi: ブーケの更新
     static async updateBouquet(a, bouquet) {
         const actor = game.actors.get(a._id)
-        await actor.update({"system.resources.fourth.value": bouquet})
+        if (game.system.id === "pf2e") {
+          await actor.update({"system.pfs.reputation.EA": bouquet})
+        } else { // dnd5e
+          await actor.update({"system.resources.fourth.value": bouquet})
+        }
+    }
+
+    _get_resource (entry) {
+        if (game.system.id === "pf2e") {
+          return entry.actor.system.pfs.reputation.EA
+        } else { // dnd5e
+          return entry.actor.system.resources.fourth.value
+        }
     }
 }
 

@@ -74,7 +74,7 @@ export class PF2eRolls extends BaseRolls {
         if (Object.keys(lore).length == 0)
             return;
 
-        return [{ id: 'lore', text: 'Lore', groups: lore }];
+        return [{ id: 'lore', text: '知識', groups: lore }];
     }
 
     get showXP() {
